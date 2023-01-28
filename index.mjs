@@ -2,6 +2,11 @@ import "dotenv/config";
 import { SystemAccessPoint } from "freeathome-local-api-client";
 import fetch from "node-fetch";
 
+// The base factor in milliseconds for the exponential backoff
+const delayFactor = 200;
+// The maximum number of times the attempt is made to establish a websocket connection.
+const maxWsRetryCount = 10;
+
 // Setup fetch
 globalThis.fetch = fetch;
 
@@ -22,7 +27,7 @@ function processMessage(message) {
       /^(ABB[a-z0-9]{9})\/(ch[\da-f]{4})\/(odp\d{4})$/i
     );
     if (!match) {
-      console.log(`Ignored datapoint ${value}: Unexpected format`);
+      console.error(`Ignored datapoint ${value}: Unexpected format`);
       return;
     }
     const update = {
@@ -59,6 +64,33 @@ const sysAp = new SystemAccessPoint(
   false,
   logger
 );
+
+// React to web socket events
+let wsConnectionAttempt = 0;
+sysAp.on("websocket-open", () => {
+  wsConnectionAttempt = 0;
+});
+sysAp.on("websocket-close", (code, reason) => {
+  if (code === 1000) return;
+
+  console.warn(
+    `Websocket to System Access Point was closed with code ${code.toString()}: ${reason.toString()}`
+  );
+  if (wsConnectionAttempt >= maxWsRetryCount) {
+    console.error(
+      "Maximum retry count exceeded. Will not try to reconnect to websocket again."
+    );
+    return;
+  }
+
+  const delay = delayFactor * 2 ** wsConnectionAttempt++;
+  console.warn(
+    `Attempting to reconnect in ${delay}ms [${wsConnectionAttempt}/${maxWsRetryCount}]`
+  );
+  setTimeout(() => sysAp.connectWebSocket(), delay);
+});
+
+// Subscribe to web socket events
 const subscription = sysAp
   .getWebSocketMessages()
   .subscribe((message) => processMessage(message));
