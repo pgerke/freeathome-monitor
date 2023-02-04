@@ -2,6 +2,8 @@ import "dotenv/config";
 import { SystemAccessPoint } from "freeathome-local-api-client";
 import fetch from "node-fetch";
 
+// Determine whether log output shall be formatted as JSONL or logfmt.
+const useLogfmt = process.argv.findIndex((e) => e.startsWith("--logfmt")) >= 0;
 // The base factor in milliseconds for the exponential backoff
 const delayFactor = 200;
 // The maximum number of times the attempt is made to establish a websocket connection.
@@ -9,6 +11,32 @@ const maxWsRetryCount = 10;
 
 // Setup fetch
 globalThis.fetch = fetch;
+
+// formats an object as logfmt
+function logfmt(data) {
+  var line = "";
+
+  for (let key in data) {
+    let value = data[key];
+    let is_null = false;
+
+    if (value === null) {
+      is_null = true;
+      value = "";
+    } else value = value.toString();
+
+    const needs_quoting = value.indexOf(" ") > -1 || value.indexOf("=") > -1;
+    const needs_escaping = value.indexOf('"') > -1 || value.indexOf("\\") > -1;
+
+    if (needs_escaping) value = value.replace(/["\\]/g, "\\$&");
+    if (needs_quoting) value = '"' + value + '"';
+    if (value === "" && !is_null) value = '""';
+
+    line += key + "=" + value + " ";
+  }
+
+  return line.trim();
+}
 
 // This function waits for a second
 async function pause() {
@@ -34,9 +62,12 @@ function processMessage(message) {
       device: match[1],
       channel: match[2],
       datapoint: match[3],
-      value: message["00000000-0000-0000-0000-000000000000"].datapoints[value]
+      value: message["00000000-0000-0000-0000-000000000000"].datapoints[value],
     };
-    console.log(JSON.stringify(update, null, null));
+
+    console.log(
+      useLogfmt ? logfmt(update) : JSON.stringify(update, null, null)
+    );
   });
 }
 
@@ -53,7 +84,7 @@ const logger = {
   debug: () => {},
   error: () => {},
   log: () => {},
-  warn: () => {}
+  warn: () => {},
 };
 // Connect to system access point and web socket
 const sysAp = new SystemAccessPoint(

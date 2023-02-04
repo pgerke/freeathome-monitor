@@ -9,4 +9,3 @@ FROM node:18-alpine
 WORKDIR /app
 COPY --from=deps /cache/ .
 COPY . .
-CMD [ "node", "index.mjs" ]

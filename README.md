@@ -1,6 +1,6 @@
 # free@home Monitor
 
-A monitor that connects to the free@home SysAP and logs device updates to STDOUT as JSONL.
+A monitor that connects to the free@home SysAP and logs device updates to STDOUT as JSONL or logfmt.
 
 ## Usage Requirements
 
@@ -38,10 +38,24 @@ In the repository base directory install the script dependencies by running `npm
 You can pull the latest image from the GitHub Container Registry by calling `docker pull ghcr.io/pgerke/freeathome-monitor:latest`. Then you can run
 
 ```bash
-docker run -e SYSAP_HOST="192.168.178.10" -e SYSAP_USER_ID="01234567-89ab-cdef-0123-456789abcdef" -e SYSAP_PASSWORD="s3cr3t_p4ssW0rD" ghcr.io/pgerke/freeathome-monitor:latest
+docker run -e SYSAP_HOST="192.168.178.10" -e SYSAP_USER_ID="01234567-89ab-cdef-0123-456789abcdef" -e SYSAP_PASSWORD="s3cr3t_p4ssW0rD" ghcr.io/pgerke/freeathome-monitor:latest npm run start
 ```
 
-Alternatively you can create an `.env` file as shown above and mount it in the container by calling `docker run -v $(pwd)/.env:/app/.env ghcr.io/pgerke/freeathome-monitor:latest`.
+Alternatively you can create an `.env` file as shown above and mount it in the container by calling `docker run -v $(pwd)/.env:/app/.env ghcr.io/pgerke/freeathome-monitor:latest npm run start`.
+
+## Using logfmt
+
+logfmt is a logging format that writes messages as a list of key-value pairs. This makes it a good option, if you want to have your logs automatically tagged and labels by applications such as Loki or Logstash. To activate logfmt add the `--logfmt` option to the command invokation:
+
+```bash
+npm run start -- --logfmt
+```
+
+or the Docker variant
+
+```bash
+docker run -e SYSAP_HOST="192.168.178.10" -e SYSAP_USER_ID="01234567-89ab-cdef-0123-456789abcdef" -e SYSAP_PASSWORD="s3cr3t_p4ssW0rD" ghcr.io/pgerke/freeathome-monitor:latest node index.mjs --logfmt
+```
 
 ## I have a feature request or found a bug, what do I do?
 
