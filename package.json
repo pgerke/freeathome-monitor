@@ -1,6 +1,6 @@
 {
   "name": "freeathome-monitor",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "A monitor that connects to the free@home SysAP and logs device updates to STDOUT as JSONL.",
   "repository": {
     "type": "git",
