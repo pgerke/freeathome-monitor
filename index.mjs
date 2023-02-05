@@ -55,10 +55,15 @@ function processMessage(message) {
       /^(ABB[a-z0-9]{9})\/(ch[\da-f]{4})\/(odp\d{4})$/i
     );
     if (!match) {
-      console.error(`Ignored datapoint ${value}: Unexpected format`);
+      const message = `Ignored datapoint ${value}: Unexpected format`;
+      console.error(
+        useLogfmt ? logfmt({ severity: "error", msg: message }) : message
+      );
       return;
     }
+
     const update = {
+      severity: useLogfmt ? "info" : undefined,
       device: match[1],
       channel: match[2],
       datapoint: match[3],
@@ -82,9 +87,18 @@ async function runLoop() {
 // Ignore logs from the SysAP
 const logger = {
   debug: () => {},
-  error: () => {},
-  log: () => {},
-  warn: () => {},
+  error: (message) =>
+    console.error(
+      useLogfmt ? logfmt({ severity: "error", msg: message }) : message
+    ),
+  log: (message) =>
+    console.log(
+      useLogfmt ? logfmt({ severity: "info", msg: message }) : message
+    ),
+  warn: (message) =>
+    console.warn(
+      useLogfmt ? logfmt({ severity: "warn", msg: message }) : message
+    ),
 };
 // Connect to system access point and web socket
 const sysAp = new SystemAccessPoint(
@@ -104,19 +118,24 @@ sysAp.on("websocket-open", () => {
 sysAp.on("websocket-close", (code, reason) => {
   if (code === 1000) return;
 
+  let message = `Websocket to System Access Point was closed with code ${code.toString()}: ${reason.toString()}`;
   console.warn(
-    `Websocket to System Access Point was closed with code ${code.toString()}: ${reason.toString()}`
+    useLogfmt ? logfmt({ severity: "warn", msg: message }) : message
   );
+
   if (wsConnectionAttempt >= maxWsRetryCount) {
+    message =
+      "Maximum retry count exceeded. Will not try to reconnect to websocket again.";
     console.error(
-      "Maximum retry count exceeded. Will not try to reconnect to websocket again."
+      useLogfmt ? logfmt({ severity: "error", msg: message }) : message
     );
     return;
   }
 
   const delay = delayFactor * 2 ** wsConnectionAttempt++;
+  message = `Attempting to reconnect in ${delay}ms [${wsConnectionAttempt}/${maxWsRetryCount}]`;
   console.warn(
-    `Attempting to reconnect in ${delay}ms [${wsConnectionAttempt}/${maxWsRetryCount}]`
+    useLogfmt ? logfmt({ severity: "warn", msg: message }) : message
   );
   setTimeout(() => sysAp.connectWebSocket(), delay);
 });
