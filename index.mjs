@@ -52,7 +52,7 @@ function processMessage(message) {
 
   keys.forEach((value) => {
     const match = value.match(
-      /^(ABB[a-z0-9]{9})\/(ch[\da-f]{4})\/(odp\d{4})$/i
+      /^([a-z0-9]{12})\/(ch[\da-f]{4})\/([io]dp\d{4})$/i
     );
     if (!match) {
       const message = `Ignored datapoint ${value}: Unexpected format`;
