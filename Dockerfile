@@ -6,6 +6,7 @@ COPY package.json package-lock.json ./
 RUN npm ci
 
 FROM node:18-alpine
+RUN apk update && apk upgrade
 WORKDIR /app
 COPY --from=deps /cache/ .
 COPY . .
