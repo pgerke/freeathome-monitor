@@ -1,6 +1,6 @@
 {
   "name": "freeathome-monitor",
-  "version": "1.1.6",
+  "version": "1.1.7",
   "description": "A monitor that connects to the free@home SysAP and logs device updates to STDOUT as JSONL.",
   "repository": {
     "type": "git",
@@ -18,8 +18,8 @@
     "url": "https://www.philipgerke.com"
   },
   "dependencies": {
-    "dotenv": "^16.3.1",
-    "freeathome-local-api-client": "^1.4.2",
+    "dotenv": "^16.4.5",
+    "freeathome-local-api-client": "^1.4.8",
     "node-fetch": "^3.3.2"
   }
 }
