@@ -2,6 +2,8 @@
 
 A monitor that connects to the free@home SysAP and logs device updates to STDOUT as JSONL or logfmt.
 
+**This application has been superceded by the more efficient [Golang implementation](https://github.com/pgerke/freeathome/tree/main/cmd/monitor) and will no longer be maintained.**
+
 ## Usage Requirements
 
 - A free@home System Access Point 2.0 running firmware > v3.0
